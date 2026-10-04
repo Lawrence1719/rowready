@@ -30,6 +30,8 @@ The extra build creates `packages/shared/dist` before either framework resolves 
 
 NestJS uses the conventional `apps/api/src/main.ts` entry point and `app.listen()`. Vercel builds that entry point into one Function. Do not configure `dist` as a static API output directory. [NestJS deployment guide](https://vercel.com/kb/guide/ship-a-nestjs-app-on-vercel)
 
+The API config explicitly sets `framework` to `nestjs`. If a previously created project reports a missing `public` output directory, open its Build and Deployment settings, select **NestJS**, and turn off the **Build Command** and **Output Directory** overrides. Keep the Root Directory at `apps/api`, then deploy the updated commit. The API uses Vercel's NestJS runtime rather than a static output folder.
+
 ## Connect the projects
 
 1. Deploy the API first. Copy its stable production origin, such as `https://row-ready-api.vercel.app`.

@@ -1,4 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nestjs",
   "installCommand": "cd ../.. && npm ci --include=dev && npm run build -w @rowready/shared"
 }
