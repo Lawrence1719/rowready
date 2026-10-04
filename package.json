@@ -1,1 +1,30 @@
-{"name":"rowready","version":"1.0.0","private":true,"type":"module","description":"An entirely browser-based inventory CSV cleanup workbench.","scripts":{"test":"node --test tests/*.test.js","start":"node server.mjs"},"devDependencies":{"happy-dom":"^20.14.5"}}
+{
+  "name": "rowready",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A private-by-design spreadsheet cleanup workbench with React and NestJS.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "dev": "npm run build -w @rowready/shared && concurrently -k -n web,api \"npm run dev -w @rowready/web\" \"npm run dev -w @rowready/api\"",
+    "build": "npm run build -w @rowready/shared && npm run build -w @rowready/api && npm run build -w @rowready/web",
+    "typecheck": "npm run build -w @rowready/shared && npm run typecheck -w @rowready/api && npm run typecheck -w @rowready/web",
+    "test": "npm run build -w @rowready/shared && npm run build -w @rowready/api && npm run test -w @rowready/shared && npm run test -w @rowready/api && npm run test -w @rowready/web",
+    "test:e2e": "playwright test",
+    "versions": "npm ls react vite typescript tailwindcss @nestjs/core --all"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.4",
+    "concurrently": "10.0.5",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}

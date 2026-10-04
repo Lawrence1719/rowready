@@ -1,4 +1,13 @@
 node_modules/
 .sites-runtime/
+.vercel/
 .env
+.env.*
+!.env.example
 *.tar.gz
+apps/*/dist/
+packages/*/dist/
+*.tsbuildinfo
+playwright-report/
+test-results/
+coverage/
