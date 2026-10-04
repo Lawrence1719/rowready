@@ -1,0 +1,1 @@
+{"name":"rowready","version":"1.0.0","private":true,"type":"module","description":"An entirely browser-based inventory CSV cleanup workbench.","scripts":{"test":"node --test tests/*.test.js","start":"node server.mjs"},"devDependencies":{"happy-dom":"^20.14.5"}}
