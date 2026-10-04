@@ -294,7 +294,7 @@ export function App() {
       </header>
       <main className="workspace" id="workspace" tabIndex={-1}>
         <div className="document-bar">
-          <div className="document-info"><FileSpreadsheet className="document-icon" aria-hidden="true" /><div className="document-title"><h1 title={state.filename || undefined}>{state.filename || 'No file open'}</h1><div className="document-meta"><span>{hasFile ? <>{state.source.format.toUpperCase()}{state.source.worksheet ? ` · ${state.source.worksheet}` : ''} · {data.headers.length} columns · {dirty ? 'Modified' : 'Original file'}</> : 'CSV, TSV, or Excel (.xlsx)'}</span></div></div></div>
+          <div className="document-info"><FileSpreadsheet className="document-icon" aria-hidden="true" /><div className="document-title"><h1 title={state.filename || undefined}>{state.filename || 'CSV & Excel spreadsheet cleaner'}</h1><div className="document-meta"><span>{hasFile ? <>{state.source.format.toUpperCase()}{state.source.worksheet ? ` · ${state.source.worksheet}` : ''} · {data.headers.length} columns · {dirty ? 'Modified' : 'Original file'}</> : 'CSV, TSV, or Excel (.xlsx)'}</span></div></div></div>
           <div className="document-actions">
             <ActionButton secondary aria-label="Open spreadsheet file" onClick={() => fileInput.current?.click()}><FolderOpen aria-hidden="true" /><span>Open file</span></ActionButton>
             <span className="header-divider" aria-hidden="true" />

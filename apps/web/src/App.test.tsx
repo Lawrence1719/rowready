@@ -328,7 +328,7 @@ describe('RowReady workspace', () => {
 
   it('starts empty and enables the cleanup workflow only after a file is imported', async () => {
     const user = await openWorkspace();
-    expect(screen.getByRole('heading', { name: 'No file open' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'CSV & Excel spreadsheet cleaner' })).toBeVisible();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Preview fixes' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Export file' })).toBeDisabled();

@@ -97,7 +97,7 @@ test('empty workbench imports a local file and uses reversible cleanup through t
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'No file open', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'CSV & Excel spreadsheet cleaner', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Open a spreadsheet', exact: true })).toBeVisible();
   await expect(page.getByRole('table')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Try the sample inventory' })).toHaveCount(0);

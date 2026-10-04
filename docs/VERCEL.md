@@ -53,3 +53,20 @@ The desired `row-ready.vercel.app` name is subject to availability. Confirm the 
 - Check the Vercel build and function logs if the API fails. A missing `@rowready/shared/dist` usually means the outside-root option or shared build command was omitted.
 
 The settings above are prepared from the current official documentation; a successful local build does not by itself verify a deployed Vercel Function.
+
+## Search indexing and link previews
+
+The frontend SEO metadata targets `https://rowready-web.vercel.app/`.
+No additional environment variables or database are required. The HTML includes
+a canonical URL, search description, Open Graph/Twitter previews, and WebApplication
+structured data. Public assets include `/robots.txt`, `/sitemap.xml`, and
+`/social-preview.png`.
+
+After deployment, verify your frontend property in Google Search Console and
+submit `https://rowready-web.vercel.app/sitemap.xml`. Indexing is controlled by
+search engines and is not immediate. The workbench is a client-rendered application;
+metadata is available in the initial HTML, while interactive content requires JavaScript.
+
+If the frontend domain changes, update the URLs in `apps/web/index.html`,
+`apps/web/public/robots.txt`, and `apps/web/public/sitemap.xml` together.
+The API domain is not the canonical website URL.
