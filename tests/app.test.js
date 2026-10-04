@@ -65,8 +65,12 @@ test('inventory cleaning and editing user journeys', async t => {
   await t.test('actual worker imports UTF-8 TSV data', async () => {
     const file = new window.File(['sku\tprice\tstock\n001\t$12.00\t4'], 'inventory.tsv', {type:'text/tab-separated-values'});
     Object.defineProperty($('file-input'), 'files', { configurable: true, value: [file] }); change($('file-input'));
+    assert.equal(document.querySelector('.app-layout').inert, true);
+    assert.throws(() => registered.get('rowready_edit_cell').execute({rowId:1,column:1,value:'lost change'}), /import/);
+    assert.throws(() => registered.get('rowready_preview_fixes').execute({}), /import/);
+    $('sample-button').click();
     for (let i=0; i<80 && $('filename').textContent !== 'inventory.tsv'; i++) await sleep(25);
-    assert.equal($('filename').textContent, 'inventory.tsv'); assert.equal($('stat-total').textContent, '1'); assert.equal(document.querySelector('[data-row="1"][data-col="0"]').textContent, '001');
+    assert.equal(document.querySelector('.app-layout').inert, false); assert.equal($('filename').textContent, 'inventory.tsv'); assert.equal($('stat-total').textContent, '1'); assert.equal(document.querySelector('[data-row="1"][data-col="0"]').textContent, '001');
   });
   await t.test('malformed imports report an error and keep the existing workspace intact', async () => {
     const file = new window.File(['sku,price\nA,"broken'], 'broken.csv'); Object.defineProperty($('file-input'), 'files', { configurable: true, value: [file] }); change($('file-input'));

@@ -78,3 +78,7 @@ test('large imports are explicitly bounded', () => {
 test('quoted empty records in a one-column file are retained', () => {
   const data = parseCSV('sku\n""\nA\n'); assert.equal(data.rows.length, 2); assert.deepEqual(data.rows[0].cells, ['']); assert.equal(analyze(data).needsAttention, 1);
 });
+test('invalid prices still contribute to mixed-currency detection', () => {
+  const data = parseCSV('sku,price\nA,$10.00\nB,€oops'); const result = cleanData(data, ['price']);
+  assert.equal(result.changes.length, 0); assert.equal(result.data.rows[0].cells[1], '$10.00'); assert.equal(analyze(result.data).needsAttention, 2);
+});

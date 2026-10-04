@@ -94,7 +94,9 @@ function renderTable() {
   $('prev-page').disabled = state.page <= 1;
   $('next-page').disabled = state.page >= pageCount;
 }
+function assertIdle() { if (state.busy) throw new Error('Wait for the current import to finish before changing data.'); }
 function previewFixes() {
+  assertIdle();
   clearError();
   const selected = selectedRecipes();
   if (!selected.length) throw new Error('Select at least one cleaning step.');
@@ -105,6 +107,7 @@ function previewFixes() {
   return { changedCells: result.changes.length, removedRows: result.removed.length, remainingRowsNeedingReview: analyze(result.data).needsAttention };
 }
 function applyFixes() {
+  assertIdle();
   if (!state.stage) throw new Error('Preview your fixes before applying them.');
   const count = state.stage.changes.length;
   pushHistory(); state.data = state.stage.data; state.dirty = true; clearStage(); render();
@@ -112,10 +115,12 @@ function applyFixes() {
   return summary();
 }
 function undo() {
+  assertIdle();
   if (!state.history.length) throw new Error('There is no change to undo.');
   state.data = state.history.pop(); state.dirty = state.data !== state.original; clearStage(); render(); notify('Last change undone.'); return summary();
 }
 function editCell(rowId, col, value) {
+  assertIdle();
   if (state.stage) throw new Error('Apply or discard the preview before editing.');
   const row = state.data.rows.find(r => r.id === rowId);
   if (!row || !Number.isInteger(col) || col < 0 || col >= state.data.headers.length || typeof value !== 'string') throw new Error('Choose a valid row, column, and text value.');
@@ -126,6 +131,7 @@ function editCell(rowId, col, value) {
   state.dirty = true; render(); return summary();
 }
 function beginEdit(button) {
+  if (state.busy) return;
   if (state.stage) return notify('Apply or discard the preview before editing cells.');
   const rowId = Number(button.dataset.row), col = Number(button.dataset.col), row = state.data.rows.find(r => r.id === rowId);
   const editor = document.createElement('textarea');
@@ -145,6 +151,7 @@ function beginEdit(button) {
 }
 function summary() { const r = analyze(state.data); return { filename: state.filename, rows: r.total, columns: state.data.headers, rowsNeedingReview: r.needsAttention, stagedPreview: !!state.stage, undoAvailable: !!state.history.length }; }
 async function confirmAction(title, message) {
+  if ($('confirm-dialog').open) return false;
   $('confirm-title').textContent = title; $('confirm-description').textContent = message;
   const dialog = $('confirm-dialog'); dialog.showModal();
   return new Promise(resolve => {
@@ -176,11 +183,14 @@ async function importFile(file) {
   clearError();
   if (!/\.(csv|tsv)$/i.test(file.name)) return showError('Choose a .csv or .tsv file. Export Excel workbooks as CSV first.');
   if (file.size > 5 * 1024 * 1024) return showError('This file is larger than 5 MB. Split it into smaller CSVs and try again.');
-  if ((state.dirty || state.stage) && !await confirmAction('Replace this inventory?', 'Your current edits will be lost. Cancel and export first if you want to keep them.')) return;
-  state.busy = true; $('busy-overlay').hidden = false;
-  try { const data = await parseFileInWorker(await file.arrayBuffer()); setDataset(data, file.name); notify(`${data.rows.length.toLocaleString()} rows imported. Your file stayed in this browser.`); }
+  state.busy = true; document.querySelector('.app-layout').inert = true; render();
+  try {
+    if ((state.dirty || state.stage) && !await confirmAction('Replace this inventory?', 'Your current edits will be lost. Cancel and export first if you want to keep them.')) return;
+    $('busy-overlay').hidden = false;
+    const data = await parseFileInWorker(await file.arrayBuffer()); setDataset(data, file.name); notify(`${data.rows.length.toLocaleString()} rows imported. Your file stayed in this browser.`);
+  }
   catch (error) { showError(error); }
-  finally { state.busy = false; $('busy-overlay').hidden = true; render(); $('file-input').value = ''; }
+  finally { state.busy = false; document.querySelector('.app-layout').inert = false; $('busy-overlay').hidden = true; render(); $('file-input').value = ''; }
 }
 $('preview-button').addEventListener('click', () => { try { previewFixes(); } catch (e) { showError(e); } });
 $('apply-button').addEventListener('click', applyFixes);
@@ -188,7 +198,7 @@ $('discard-button').addEventListener('click', () => { clearStage(); render(); no
 $('current-view').addEventListener('click', () => { state.preview = false; render(); });
 $('preview-view').addEventListener('click', () => { state.preview = true; render(); });
 $('undo-button').addEventListener('click', undo);
-$('reset-button').addEventListener('click', async () => { if (await confirmAction('Reset to the original file?', 'This will restore all original rows and clear your edit history.')) { state.data = state.original; state.history = []; state.dirty = false; clearStage(); render(); notify('Original file restored.'); } });
+$('reset-button').addEventListener('click', async () => { if (state.busy) return; if (await confirmAction('Reset to the original file?', 'This will restore all original rows and clear your edit history.')) { state.data = state.original; state.history = []; state.dirty = false; clearStage(); render(); notify('Original file restored.'); } });
 $('recipes').addEventListener('change', () => { clearStage(); render(); });
 $('search-input').addEventListener('input', e => { clearTimeout(searchTimer); const value = e.target.value; searchTimer = setTimeout(() => { state.search = value; state.page = 1; renderTable(); }, 120); });
 $('filter-select').addEventListener('change', e => { state.filter = e.target.value; state.page = 1; renderTable(); });
@@ -212,7 +222,7 @@ for (const type of ['dragenter', 'dragover']) dropZone.addEventListener(type, e 
 for (const type of ['dragleave', 'drop']) dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.remove('dragging'); });
 dropZone.addEventListener('drop', e => { if (e.dataTransfer.files.length > 1) return showError('Import one inventory file at a time.'); importFile(e.dataTransfer.files[0]); });
 window.addEventListener('dragover', e => e.preventDefault()); window.addEventListener('drop', e => e.preventDefault());
-$('sample-button').addEventListener('click', async () => { if ((state.dirty || state.stage) && !await confirmAction('Load the sample inventory?', 'Your current edits will be replaced with sample data.')) return; setDataset(parseCSV(SAMPLE_CSV), 'sample-inventory.csv', true); notify('Sample inventory loaded. Try previewing the fixes.'); });
+$('sample-button').addEventListener('click', async () => { if (state.busy) return; if ((state.dirty || state.stage) && !await confirmAction('Load the sample inventory?', 'Your current edits will be replaced with sample data.')) return; setDataset(parseCSV(SAMPLE_CSV), 'sample-inventory.csv', true); notify('Sample inventory loaded. Try previewing the fixes.'); });
 document.querySelectorAll('.help-trigger').forEach(b => b.addEventListener('click', () => $('help-dialog').showModal()));
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => $(b.dataset.close).close()));
 $('export-button').addEventListener('click', () => {

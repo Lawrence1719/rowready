@@ -87,7 +87,7 @@ export function categoryValue(value) {
 function mixedCurrencyColumns(data) {
   const kinds = columnKinds(data.headers), mixed = new Set();
   kinds.forEach((kind, col) => { if (kind !== 'price') return;
-    const currencies = new Set(data.rows.map(r => priceValue(r.cells[col])?.currency).filter(Boolean));
+    const currencies = new Set(data.rows.map(r => r.cells[col].trim().match(/^([$€£₱¥])/)?.[1]).filter(Boolean));
     if (currencies.size > 1) mixed.add(col);
   });
   return mixed;
