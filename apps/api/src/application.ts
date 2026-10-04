@@ -34,7 +34,11 @@ export async function createApplication(options: ApplicationOptions = {}): Promi
     bodyParser: false,
     logger: options.logger ?? ['error', 'warn', 'log'],
   });
+  return configureApplication(app, options);
+}
 
+/** Apply the same HTTP configuration to production and test application instances. */
+export async function configureApplication(app: NestExpressApplication, options: ApplicationOptions = {}): Promise<NestExpressApplication> {
   app.setGlobalPrefix('api');
   app.getHttpAdapter().getInstance().disable('x-powered-by');
   app.enableCors({
