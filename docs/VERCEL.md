@@ -6,7 +6,7 @@ Vercel Hobby is free for personal, noncommercial use and has usage limits. This 
 
 ## Project settings
 
-Import the repository twice in Vercel. Configure these settings before deploying:
+Import the repository twice in Vercel. The app directories contain `vercel.json` files that install all workspace dependencies and build `packages/shared` before Vercel builds either app. Commit these files along with the package manifests and lockfile. Configure these settings before deploying:
 
 | Setting | Web | API |
 | --- | --- | --- |
@@ -14,16 +14,16 @@ Import the repository twice in Vercel. Configure these settings before deploying
 | Root Directory | `apps/web` | `apps/api` |
 | Framework Preset | Vite | NestJS |
 | Node.js version | 22.x | 22.x |
-| Install Command override | See command below | See command below |
+| Install Command | Provided by `apps/web/vercel.json` | Provided by `apps/api/vercel.json` |
 | Build Command | `npm run build` | Default; leave override off |
 | Output Directory | `dist` | Default; leave override off |
 
 For **both** projects, enable **Include source files outside of the Root Directory in the Build Step**. This makes the root lockfile and `packages/shared` available. The repository root contains the only `package-lock.json`. [Monorepo setup](https://vercel.com/docs/monorepos), [shared packages](https://vercel.com/docs/monorepos/monorepo-faq#can-i-share-source-files-between-projects-are-shared-packages-supported)
 
-Use this Install Command in both projects, executed from their app directory:
+Both config files use this Install Command, executed from their app directory:
 
 ```sh
-cd ../.. && npm ci && npm run build -w @rowready/shared
+cd ../.. && npm ci --include=dev && npm run build -w @rowready/shared
 ```
 
 The extra build creates `packages/shared/dist` before either framework resolves `@rowready/shared`. Keep development dependencies installed because the TypeScript compiler is needed. These commands are specific to this repository's npm workspace layout. [Build settings](https://vercel.com/docs/builds/configure-a-build)

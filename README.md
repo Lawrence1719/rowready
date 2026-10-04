@@ -4,7 +4,7 @@ A spreadsheet cleanup workbench built with React and NestJS. Open CSV, TSV, or E
 
 ## Run locally
 
-Use Node.js **22.12 or newer** (Node 22 LTS is configured in `.nvmrc`) and npm 10 or newer.
+Use Node.js **22.x (22.12 or newer)** (Node 22 LTS is configured in `.nvmrc`) and npm 10 or newer.
 
 ```sh
 npm ci
