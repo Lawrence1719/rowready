@@ -164,3 +164,16 @@ test('OpenAPI and Swagger UI describe the bounded API contract', async () => {
   const docs = await request(http).get('/api/docs').expect(200);
   assert.match(docs.text, /swagger-ui/);
 });
+
+
+test('Swagger HTML references working JavaScript, styles, and icons', async () => {
+  const page = await request(http).get('/api/docs').expect(200);
+  const assets = [...page.text.matchAll(/(?:src|href)="([^"#]+)"/g)]
+    .map((match) => new URL(match[1], 'http://localhost/api/docs').pathname);
+  assert.ok(assets.some((path) => path.endsWith('swagger-ui-bundle.js')));
+  for (const path of assets) {
+    const asset = await request(http).get(path).expect(200);
+    const type = path.endsWith('.js') ? /javascript/ : path.endsWith('.css') ? /text\/css/ : /image\/png/;
+    assert.match(asset.headers['content-type'], type);
+  }
+});

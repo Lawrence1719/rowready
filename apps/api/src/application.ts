@@ -1,10 +1,22 @@
 import 'reflect-metadata';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { type LoggerService, type LogLevel } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import express, { type ErrorRequestHandler } from 'express';
+import express, { type ErrorRequestHandler, type Request, type Response } from 'express';
 import { AppModule } from './app.module.js';
+
+const require = createRequire(import.meta.url);
+// Explicit file references let serverless tracing include Swagger's static assets.
+const swaggerAssets = [
+  ['swagger-ui.css', 'text/css', readFileSync(require.resolve('swagger-ui-dist/swagger-ui.css'))],
+  ['swagger-ui-bundle.js', 'application/javascript', readFileSync(require.resolve('swagger-ui-dist/swagger-ui-bundle.js'))],
+  ['swagger-ui-standalone-preset.js', 'application/javascript', readFileSync(require.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js'))],
+  ['favicon-32x32.png', 'image/png', readFileSync(require.resolve('swagger-ui-dist/favicon-32x32.png'))],
+  ['favicon-16x16.png', 'image/png', readFileSync(require.resolve('swagger-ui-dist/favicon-16x16.png'))],
+] as const;
 
 export interface ApplicationOptions {
   logger?: LoggerService | LogLevel[] | false;
@@ -62,6 +74,12 @@ export async function configureApplication(app: NestExpressApplication, options:
   // The HTTP validator rejects unknown properties; express the same contract in OpenAPI.
   const configurationSchema = document.components?.schemas?.RecipeConfigurationDto;
   if (configurationSchema && !('$ref' in configurationSchema)) configurationSchema.additionalProperties = false;
+  const server: express.Express = app.getHttpAdapter().getInstance();
+  for (const [filename, contentType, contents] of swaggerAssets) {
+    server.get(`/api/docs/${filename}`, (_request: Request, response: Response) => {
+      response.type(contentType).send(contents);
+    });
+  }
   SwaggerModule.setup('api/docs', app, document, {
     jsonDocumentUrl: 'api/docs-json',
     customSiteTitle: 'RowReady API',
